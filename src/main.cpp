@@ -12,8 +12,10 @@
 #define ODOMB "220F00\r"
 #define ODO "22F100\r"
 #define OIL "015C\r"
+#define TURBO_TEMP "0176\r"
+
 int main(int argc, char* argv[]){
-    bool rpm, help, fuel, oiltemp, odometer, odoMB, dtc, storedDTC, speed = false;
+    bool rpm, help, fuel, oiltemp, odometer, odoMB, dtc, storedDTC, speed, turbotemp = false;
     for(int i = 0; i < argc; i++){
         if(argv[i] == "h"){
             help = true;
@@ -39,6 +41,9 @@ int main(int argc, char* argv[]){
         if(argv[i] == "s"){
             speed = true;
         }
+        if(argv[i] == "turbt"){
+            turbotemp = true;
+        }
 }
     if(argc == 1){
         std::cerr << "This Program requires Arguments." << std::endl;
@@ -54,7 +59,8 @@ int main(int argc, char* argv[]){
                   << "f - Displays Fuel Level\n"
                   << "dtc - Displays DTC's\n"
                   << "stdtc - Displays Stored DTC's\n"
-                  << "s - Displays Real-Time Speed\n";
+                  << "s - Displays Real-Time Speed\n"
+                  << "tt - Displays Real-Time Turbocharger Temperature";
         return 10; // Exited with Help
     }   
     else if(argc > 1){
@@ -88,7 +94,7 @@ int main(int argc, char* argv[]){
             std::cout << "Stored DTC's: " << std::to_string(sdtcs) << std::endl;
         }
         if(odometer == true){
-            ObdCommand cmd(&serial, "ODOMETER", ODO, "(A*256)+B");
+            ObdCommand cmd(&serial, "ODOMETER", ODO, "((A*16777216)+(B*65536)+(C*256)+D)/10");
             auto odo = cmd.run();
             std::cout << "Odometer: " << std::to_string(odo) << std::endl;
         }
@@ -96,6 +102,11 @@ int main(int argc, char* argv[]){
             ObdCommand cmd(&serial, "Oil Temperature", OIL, "A-40");
             auto oiltempValue = cmd.run();
             std::cout << "Oil Temperature: " << std::to_string(oiltempValue) << std::endl;
+        }
+        if(turbotemp == true){
+            ObdCommand cmd(&serial, "Turbocharger Temperature", TURBO_TEMP, "A-40");
+            auto turbotempValue = cmd.run();
+            std::cout << "Turbo Temp.:" << std::to_string(turbotempValue);
         }
     }
 
